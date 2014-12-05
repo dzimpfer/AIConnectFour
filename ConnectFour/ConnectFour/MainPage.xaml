@@ -1,0 +1,58 @@
+﻿<Page
+    x:Class="ConnectFour.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ConnectFour"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" KeyUp="Page_KeyUp">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" KeyUp="Grid_KeyUp">
+        <Canvas x:Name="boardCanvas" HorizontalAlignment="Center"  VerticalAlignment="Center" />
+        <TextBlock x:Name="title" HorizontalAlignment="Center" Margin="0,0,0,0" TextWrapping="Wrap" Text="Connect Four" VerticalAlignment="Top" FontSize="72" FontFamily="Kristen ITC"  Foreground="White"/>
+        <TextBlock x:Name="firstPlayerNameTextBlock" HorizontalAlignment="Left" Margin="46,466,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontFamily="Kristen ITC" FontSize="36"/>
+        <TextBlock x:Name="secondPlayerNameTextBlock" HorizontalAlignment="Left" Margin="46,545,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontFamily="Kristen ITC" FontSize="36"/>
+        <Button Content="New Game" HorizontalAlignment="Left" Margin="43,333,0,0" VerticalAlignment="Top" Height="75" Width="304" FontFamily="Kristen ITC" FontSize="36" RenderTransformOrigin="0.5,0.5" Click="Button_Click"/>
+        <TextBlock x:Name="secondPlayerScoreTextBlock" TextWrapping="Wrap" FontSize="36" FontFamily="Kristen ITC" Margin="365,545,979,174"/>
+        <TextBlock x:Name="firstPlayerScoreTextBlock" TextWrapping="Wrap" FontFamily="Kristen ITC" FontSize="36" Margin="365,466,979,253"/>
+        <Canvas x:Name="columnCanvas" HorizontalAlignment="Center" Height="100" VerticalAlignment="Top" Width="700"/>
+        <StackPanel HorizontalAlignment="Right" Height="340"  Orientation="Vertical" Margin="0,175,44,253" Width="300">
+            <TextBlock HorizontalAlignment="Right" TextWrapping="Wrap" Text="Top Scorers" VerticalAlignment="Top" FontFamily="Kristen ITC" FontSize="48" Height="100"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="topScorerTextBlock1" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+                <TextBlock x:Name="topScoreTextBlock1" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="topScorerTextBlock2" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+                <TextBlock x:Name="topScoreTextBlock2" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="topScorerTextBlock3" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+                <TextBlock x:Name="topScoreTextBlock3" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="topScorerTextBlock4" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+                <TextBlock x:Name="topScoreTextBlock4" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock x:Name="topScorerTextBlock5" FontFamily="Kristen ITC" FontSize="24" Height="50"/>
+                <TextBlock x:Name="topScoreTextBlock5" FontFamily="Kristen ITC" FontSize="24" Height="50" HorizontalAlignment="Right"/>
+            </StackPanel>
+        </StackPanel>
+        <TextBlock x:Name="interactionTextBlock" TextAlignment="Center" HorizontalAlignment="Center"  TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Margin="437,0,436,132" FontFamily="Kristen ITC" FontSize="36" Width="493"/>
+        <Button Content="Computer Play" HorizontalAlignment="Left" Margin="82,197,0,0" VerticalAlignment="Top" Width="184" Click="Button_Click_1"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="145,534,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+    </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar IsOpen="True">
+            <!--Remove IsOpen before submitting-->
+
+            <AppBarButton Label="About" Icon="Help"  Click="AppBarButton_Click"/>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="Edit Player" Icon="Edit" Click="AppBarButton_Click_2"/>
+                <AppBarButton Label="Edit Scores" Icon="OutlineStar" Click="AppBarButton_Click_1"/>
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+</Page>
