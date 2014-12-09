@@ -43,6 +43,9 @@ namespace ConnectFour
         private NavigationHelper navigationHelper;
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
         private DispatcherTimer timer = new DispatcherTimer();
+        public int TWO_VALUE = 2;
+        public int THREE_VALUE = 50;
+        public int FOUR_VALUE = 10000;
         public struct Play
         {
             public int column;
@@ -594,39 +597,56 @@ namespace ConnectFour
         //    return result;
         //}
 
-        private int function(int levels, int finalLevel, int[,] grid)
+        private Play function(int levels, int finalLevel, int[,] gamegrid)
         {
             if (levels == finalLevel)
             {
-                int min = 100000;
-                int[,] helperGrid = grid;
-                for(int i = 0; i < 6; i++)
-                {
-                    variableMoves(grid, i);
-                    if(evaluateFor1(grid) < min)
-                    {
-                        min = evaluateFor1(grid);
-                    }
-                    grid = helperGrid;
-                }
-                return min;
+                Play p = new Play();
+                p.score = evaluateFor1(gamegrid);
+                //if (playerMove == 1)
+                //{
+                //    p.score = evaluateFor1(gamegrid);
+                //}
+                //else
+                //{
+                //    p.score = evaluateFor2(gamegrid);
+                //}
+                return p;
+                //int min = 100000;
+                //int[,] helperGrid = grid;
+                //for (int i = 0; i < 6; i++)
+                //{
+                //    variableMoves(grid, i);
+                //    //firstPlayerTurn = !firstPlayerTurn;
+                //    if (evaluateFor1(grid) < min)
+                //    {
+                //        min = evaluateFor1(grid);
+                //    }
+                //    grid = helperGrid;
+                //}
+                //return min;
             }
-            else if(levels % 2 == 0)
+            else if (levels % 2 == 0)
             {
-                int[,] helperGrid = grid;
+                int[,] helperGrid = copyGrid(gamegrid);
                 int max = -100000;
-                int x;
-                for (int i = 0; i < 6; i++ )
+                Play x = new Play();
+                if(levels != 0)
+                    firstPlayerTurn = !firstPlayerTurn;
+                for (int i = 0; i < 6; i++)
                 {
-                    variableMoves(grid, i);
-                    x = function(levels + 1, finalLevel, grid);
-                    if(x > max)
+                    variableMoves(helperGrid, i);
+                    //firstPlayerTurn = !firstPlayerTurn;
+                    x = function(levels + 1, finalLevel, helperGrid);
+                    if (x.score > max)
                     {
-                        max = x;
+                        max = x.score;
+                        x.column = i;
                     }
-                    grid = helperGrid;
+                    helperGrid = copyGrid(gamegrid);
                 }
-                return max;
+                x.score = max;
+                return x;
                 //    //max of
                 //    if (levels == finalLevel)
                 //    {
@@ -636,20 +656,26 @@ namespace ConnectFour
             }
             else
             {
-                int[,] helperGrid = grid;
+                int[,] helperGrid = copyGrid(gamegrid);
                 int min = 100000;
-                int x;
+                Play x = new Play();
+                if (levels != 1)
+                    firstPlayerTurn = !firstPlayerTurn;
                 for (int i = 0; i < 6; i++)
                 {
-                    variableMoves(grid, i);
-                    x = function(levels + 1, finalLevel, grid);
-                    if (x < min)
+                    variableMoves(helperGrid, i);
+                    //firstPlayerTurn = !firstPlayerTurn;
+                    x = function(levels + 1, finalLevel, helperGrid);
+                    if (x.score < min)
                     {
-                        min = x;
+                        min = x.score;
+                        x.column = i;
                     }
-                    grid = helperGrid;
+                    helperGrid = copyGrid(gamegrid);
                 }
-                return min;
+                x.score = min;
+                return x;
+                //return min;
                 ////min
                 //return function(levels + 1,finalLevel);
             }
@@ -674,6 +700,16 @@ namespace ConnectFour
         {
             Random rnd = new Random();
             int column = rnd.Next(0, BOARD_WIDTH);
+            int player;
+
+            if (firstPlayerTurn)
+            {
+                player = 1;
+            }
+            else
+            {
+                player = 2;
+            }
 
             if (isEmpty(grid))
             {
@@ -681,7 +717,8 @@ namespace ConnectFour
             }
             else
             {
-                variableMoves(grid, findBestPlay().column);
+                //variableMoves(grid, findBestPlay().column);
+                variableMoves(grid, function(0, 5, grid).column);
             }
 
             firstPlayerTurn = !firstPlayerTurn;
@@ -1021,9 +1058,9 @@ namespace ConnectFour
             int result = 0;
 
             if (playerWon(grid, 1))
-                result = 10000;
+                result = FOUR_VALUE;
             if (playerWon(grid, 2))
-                result = -10000;
+                result = -FOUR_VALUE;
 
 
             if (!gameIsOver(grid))
@@ -1070,30 +1107,30 @@ namespace ConnectFour
                         if (r <= BOARD_HEIGHT - 2)
                         {
                             if (grid[r, c] == 1 && grid[r + 1, c] == 1)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 2 && grid[r + 1, c] == 2)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2)
                         {
                             if (grid[r, c] == 1 && grid[r, c + 1] == 1)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 2 && grid[r, c + 1] == 2)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2 && r <= BOARD_HEIGHT - 2)
                         {
                             if (grid[r, c] == 1 && grid[r + 1, c + 1] == 1)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 2 && grid[r + 1, c + 1] == 2)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2 && r > 0)
                         {
                             if (grid[r, c] == 1 && grid[r - 1, c + 1] == 1)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 2 && grid[r - 1, c + 1] == 2)
-                                result += 2;
+                                result += TWO_VALUE;
                         }
                     }
                 }
@@ -1107,9 +1144,9 @@ namespace ConnectFour
             int result = 0;
 
             if (playerWon(grid, 2))
-                result = 10000;
-            if (playerWon(grid, 2))
-                result = -10000;
+                result = FOUR_VALUE;
+            if (playerWon(grid, 1))
+                result = -FOUR_VALUE;
 
             if (!gameIsOver(grid))
             {
@@ -1120,30 +1157,30 @@ namespace ConnectFour
                         if (r <= BOARD_HEIGHT - 3)
                         {
                             if (grid[r, c] == 2 && grid[r + 1, c] == 2 && grid[r + 2, c] == 2)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 1 && grid[r + 1, c] == 1 && grid[r + 2, c] == 1)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3)
                         {
                             if (grid[r, c] == 2 && grid[r, c + 1] == 2 && grid[r, c + 2] == 2)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 1 && grid[r, c + 1] == 1 && grid[r, c + 2] == 1)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3 && r <= BOARD_HEIGHT - 3)
                         {
                             if (grid[r, c] == 2 && grid[r + 1, c + 1] == 2 && grid[r + 2, c + 2] == 2)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 1 && grid[r + 1, c + 1] == 1 && grid[r + 2, c + 2] == 1)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3 && r > 1)
                         {
                             if (grid[r, c] == 2 && grid[r - 1, c + 1] == 2 && grid[r - 2, c + 2] == 2)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 1 && grid[r - 1, c + 1] == 1 && grid[r - 2, c + 2] == 1)
-                                result += 50;
+                                result -= THREE_VALUE;
                         }
                     }
                 }
@@ -1156,30 +1193,30 @@ namespace ConnectFour
                         if (r <= BOARD_HEIGHT - 2)
                         {
                             if (grid[r, c] == 2 && grid[r + 1, c] == 2)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 1 && grid[r + 1, c] == 1)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2)
                         {
                             if (grid[r, c] == 2 && grid[r, c + 1] == 2)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 1 && grid[r, c + 1] == 1)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2 && r <= BOARD_HEIGHT - 2)
                         {
                             if (grid[r, c] == 2 && grid[r + 1, c + 1] == 2)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 1 && grid[r + 1, c + 1] == 1)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 2 && r > 0)
                         {
                             if (grid[r, c] == 2 && grid[r - 1, c + 1] == 2)
-                                result += 2;
+                                result += TWO_VALUE;
                             if (grid[r, c] == 1 && grid[r - 1, c + 1] == 1)
-                                result -= 2;
+                                result -= TWO_VALUE;
                         }
                     }
                 }
@@ -1190,7 +1227,7 @@ namespace ConnectFour
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            int test = function(0, 5, grid);
+            Play test = function(0, 5, grid);
 
             int something;
         }
