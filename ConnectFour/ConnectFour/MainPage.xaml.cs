@@ -54,7 +54,7 @@ namespace ConnectFour
         public int[,] lastGrid2 = { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } };
         public List<losingConfig> losingList = new List<losingConfig>();
         public int computerGamesPlayed = 0;
-        public int COMPUTER_GAMES_LIMIT = 10;
+        public int COMPUTER_GAMES_LIMIT = 1;
         public struct Play
         {
             public int column;
@@ -389,6 +389,8 @@ namespace ConnectFour
             timer.Tick += timer_Tick;
             timer.Interval = new TimeSpan(0, 0, 0, 1);
             timer.Start();
+            interactionTextBlock.Foreground = new SolidColorBrush(Colors.White);
+            interactionTextBlock.Text = "Computer Playing";
         }
 
 
@@ -425,7 +427,7 @@ namespace ConnectFour
             computerPlay();
             if (gameIsOver(grid))
             {
-                //computerGamesPlayed++;
+                computerGamesPlayed++;
                 if(playerWon(grid,1))
                 {
                     losingConfig lconfig = new losingConfig();
@@ -443,13 +445,15 @@ namespace ConnectFour
                         losingList.Add(lconfig);
                 }
                 timer.Stop();
+                if (computerGamesPlayed < COMPUTER_GAMES_LIMIT)
+                {
+                    firstPlayerTurn = true;
+                    newGame();
+                    DrawGrid();
+                    timer.Start();
+                }
             }
-            //if(computerGamesPlayed != COMPUTER_GAMES_LIMIT)
-            //{
-            //    firstPlayerTurn = true;
-            //    newGame();
-            //    DrawGrid();
-            //}
+
         }
 
         //private int[,] copyGrid(int[,] grid)
