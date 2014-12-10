@@ -41,7 +41,9 @@
         </StackPanel>
         <TextBlock x:Name="interactionTextBlock" TextAlignment="Center" HorizontalAlignment="Center"  TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Margin="437,0,436,132" FontFamily="Kristen ITC" FontSize="36" Width="493"/>
         <Button Content="Computer Play" HorizontalAlignment="Left" Margin="82,197,0,0" VerticalAlignment="Top" Width="184" Click="Button_Click_1"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="145,534,0,0" VerticalAlignment="Top" Click="Button_Click_2"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="145,534,0,0" VerticalAlignment="Top" Click="Button_Click_2" Visibility="Collapsed"/>
+        <TextBlock x:Name="move1" HorizontalAlignment="Left" Margin="241,30,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontFamily="Kristen ITC" FontSize="20"/>
+        <TextBlock x:Name="move2" HorizontalAlignment="Left" Margin="1069,30,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontFamily="Kristen ITC" FontSize="20"/>
     </Grid>
 
     <Page.BottomAppBar>

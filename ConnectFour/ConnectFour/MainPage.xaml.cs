@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.System;
@@ -44,8 +45,9 @@ namespace ConnectFour
         private ObservableDictionary defaultViewModel = new ObservableDictionary();
         private DispatcherTimer timer = new DispatcherTimer();
         public int TWO_VALUE = 2;
-        public int THREE_VALUE = 50;
+        public int THREE_VALUE = 100;
         public int FOUR_VALUE = 10000;
+        public int DEPTH = 5;
         public struct Play
         {
             public int column;
@@ -362,7 +364,7 @@ namespace ConnectFour
         {
             timer = new DispatcherTimer();
             timer.Tick += timer_Tick;
-            timer.Interval = new TimeSpan(0, 0, 1);
+            timer.Interval = new TimeSpan(0, 0, 0, 1);
             timer.Start();
         }
 
@@ -389,47 +391,25 @@ namespace ConnectFour
             return result;
         }
 
-        private void variableMoves(int[,] grid, int column)
+        private void variableMoves(int[,] gameGrid, int column)
         {
             for (int r = BOARD_HEIGHT - 1; r > -1; r--)
             {
-                if (grid[r, column] == 0)
+                if (gameGrid[r, column] == 0)
                 {
                     if (firstPlayerTurn)
                     {
-                        grid[r, column] = 1;
+                        gameGrid[r, column] = 1;
 
                     }
                     if (!firstPlayerTurn)
                     {
-                        grid[r, column] = 2;
+                        gameGrid[r, column] = 2;
 
                     }
                     break;
                 }
             }
-        }
-
-        private int[,] variableMoves2(int[,] grid, int column)
-        {
-            for (int r = BOARD_HEIGHT - 1; r > -1; r--)
-            {
-                if (grid[r, column] == 0)
-                {
-                    if (firstPlayerTurn)
-                    {
-                        grid[r, column] = 1;
-
-                    }
-                    if (!firstPlayerTurn)
-                    {
-                        grid[r, column] = 2;
-
-                    }
-                    break;
-                }
-            }
-            return grid;
         }
 
         public bool isEmpty(int[,] grid)
@@ -597,103 +577,316 @@ namespace ConnectFour
         //    return result;
         //}
 
-        private Play function(int levels, int finalLevel, int[,] gamegrid)
+        struct playBoard
         {
-            if (levels == finalLevel)
+            public int column;
+            public int score;
+            public int[,] playGrid;
+            //public playBoard(int col, int sco)
+            //{
+            //    column = col;
+            //    score = sco;
+            //}
+        }
+
+
+        //check for full columns
+        private playBoard lookAhead1(int[,] lookAheadGrid, int level, int end)
+        {
+            if(level == end)
             {
-                Play p = new Play();
-                p.score = evaluateFor1(gamegrid);
-                //if (playerMove == 1)
-                //{
-                //    p.score = evaluateFor1(gamegrid);
-                //}
-                //else
-                //{
-                //    p.score = evaluateFor2(gamegrid);
-                //}
-                return p;
-                //int min = 100000;
-                //int[,] helperGrid = grid;
-                //for (int i = 0; i < 6; i++)
-                //{
-                //    variableMoves(grid, i);
-                //    //firstPlayerTurn = !firstPlayerTurn;
-                //    if (evaluateFor1(grid) < min)
-                //    {
-                //        min = evaluateFor1(grid);
-                //    }
-                //    grid = helperGrid;
-                //}
-                //return min;
-            }
-            else if (levels % 2 == 0)
-            {
-                int[,] helperGrid = copyGrid(gamegrid);
-                int max = -100000;
-                Play x = new Play();
-                if(levels != 0)
-                    firstPlayerTurn = !firstPlayerTurn;
-                for (int i = 0; i < 6; i++)
+                if(level % 2 == 0)
                 {
-                    variableMoves(helperGrid, i);
-                    //firstPlayerTurn = !firstPlayerTurn;
-                    x = function(levels + 1, finalLevel, helperGrid);
-                    if (x.score > max)
+                    playBoard pboard = new playBoard();
+                    pboard.column = 0;
+                    pboard.score = -100000;
+                    pboard.playGrid = new int[BOARD_HEIGHT,BOARD_WIDTH];
+                    
+                    for(int i = 0; i < BOARD_WIDTH; i++)
                     {
-                        max = x.score;
-                        x.column = i;
+                        if (grid[0, i] == 0)
+                        {
+                            int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                            Array.Copy(lookAheadGrid, tempGrid, 42);
+                            firstPlayerTurn = true;
+                            variableMoves(tempGrid, i);
+                            if (evaluateFor1(tempGrid) > pboard.score)
+                            {
+                                pboard.column = i;
+                                pboard.score = evaluateFor1(tempGrid);
+                                Array.Copy(tempGrid, pboard.playGrid, 42);
+                            }
+                        }
                     }
-                    helperGrid = copyGrid(gamegrid);
+                    return pboard;
                 }
-                x.score = max;
-                return x;
-                //    //max of
-                //    if (levels == finalLevel)
-                //    {
-                //        //max of heuristics
-                //    }
-                //return function(levels + 1,finalLevel);
+                else
+                {
+                    playBoard pboard = new playBoard();
+                    pboard.column = 0;
+                    pboard.score = 100000;
+                    pboard.playGrid = new int[BOARD_HEIGHT,BOARD_WIDTH];
+                    
+                    for (int i = 0; i < BOARD_WIDTH; i++)
+                    {
+                        if (grid[0, i] == 0)
+                        {
+                            int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                            Array.Copy(lookAheadGrid, tempGrid, 42);
+                            firstPlayerTurn = false;
+                            variableMoves(tempGrid, i);
+                            if (evaluateFor1(tempGrid) < pboard.score)
+                            {
+                                pboard.column = i;
+                                pboard.score = evaluateFor1(tempGrid);
+                                Array.Copy(tempGrid, pboard.playGrid, 42);
+                            }
+                        }
+                    }
+                    return pboard;
+                }
+            }
+            else if(level % 2 == 0)
+            {
+                playBoard pboard = new playBoard();
+                pboard.column = 0;
+                pboard.score = -100000;
+                pboard.playGrid = new int[BOARD_HEIGHT,BOARD_WIDTH];
+                
+                level++;
+                for(int i = 0; i < BOARD_WIDTH; i++)
+                {
+                    if (grid[0, i] == 0)
+                    {
+                        int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                        Array.Copy(lookAheadGrid, tempGrid, 42);
+                        firstPlayerTurn = true;
+                        variableMoves(tempGrid, i);
+                        if (lookAhead1(tempGrid, level, end).score > pboard.score)
+                        {
+                            pboard = lookAhead1(tempGrid, level, end);
+                            pboard.column = i;
+                        }
+                    }
+                }
+                return pboard;
             }
             else
             {
-                int[,] helperGrid = copyGrid(gamegrid);
-                int min = 100000;
-                Play x = new Play();
-                if (levels != 1)
-                    firstPlayerTurn = !firstPlayerTurn;
-                for (int i = 0; i < 6; i++)
+                playBoard pboard = new playBoard();
+                pboard.column = 0;
+                pboard.score = 100000;
+                pboard.playGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                
+                level++;
+                for(int i = 0; i < BOARD_WIDTH; i++)
                 {
-                    variableMoves(helperGrid, i);
-                    //firstPlayerTurn = !firstPlayerTurn;
-                    x = function(levels + 1, finalLevel, helperGrid);
-                    if (x.score < min)
+                    if (grid[0, i] == 0)
                     {
-                        min = x.score;
-                        x.column = i;
+                        int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                        Array.Copy(lookAheadGrid, tempGrid, 42);
+                        firstPlayerTurn = false;
+                        variableMoves(tempGrid, i);
+                        if (lookAhead1(tempGrid, level, end).score < pboard.score)
+                        {
+                            pboard = lookAhead1(tempGrid, level, end);
+                            pboard.column = i;
+                        }
                     }
-                    helperGrid = copyGrid(gamegrid);
                 }
-                x.score = min;
-                return x;
-                //return min;
-                ////min
-                //return function(levels + 1,finalLevel);
+                return pboard;
             }
         }
 
-        //private int function2(int level, int finalLevel, int[,] grid, int move)
-        //{
-        //    function2(level + 1, finalLevel, variableMoves2(grid, 0), 0);
-        //}
+        private playBoard lookAhead2(int[,] lookAheadGrid, int level, int end)
+        {
+            if (level == end)
+            {
+                if (level % 2 == 0)
+                {
+                    playBoard pboard = new playBoard();
+                    pboard.column = 0;
+                    pboard.score = -100000;
+                    pboard.playGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
 
-        //private int function()
+                    for (int i = 0; i < BOARD_WIDTH; i++)
+                    {
+                        if (grid[0, i] == 0)
+                        {
+                            int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                            Array.Copy(lookAheadGrid, tempGrid, 42);
+                            firstPlayerTurn = false;
+                            variableMoves(tempGrid, i);
+                            if (evaluateFor2(tempGrid) > pboard.score)
+                            {
+                                pboard.column = i;
+                                pboard.score = evaluateFor2(tempGrid);
+                                Array.Copy(tempGrid, pboard.playGrid, 42);
+                            }
+                        }
+                    }
+                    return pboard;
+                }
+                else
+                {
+                    playBoard pboard = new playBoard();
+                    pboard.column = 0;
+                    pboard.score = 100000;
+                    pboard.playGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+
+                    for (int i = 0; i < BOARD_WIDTH; i++)
+                    {
+                        if (grid[0, i] == 0)
+                        {
+                            int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                            Array.Copy(lookAheadGrid, tempGrid, 42);
+                            firstPlayerTurn = true;
+                            variableMoves(tempGrid, i);
+                            if (evaluateFor2(tempGrid) < pboard.score)
+                            {
+                                pboard.column = i;
+                                pboard.score = evaluateFor2(tempGrid);
+                                Array.Copy(tempGrid, pboard.playGrid, 42);
+                            }
+                        }
+                    }
+                    return pboard;
+                }
+            }
+            else if (level % 2 == 0)
+            {
+                playBoard pboard = new playBoard();
+                pboard.column = 0;
+                pboard.score = -100000;
+                pboard.playGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+
+                level++;
+                for (int i = 0; i < BOARD_WIDTH; i++)
+                {
+                    if (grid[0, i] == 0)
+                    {
+                        int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                        Array.Copy(lookAheadGrid, tempGrid, 42);
+                        firstPlayerTurn = false;
+                        variableMoves(tempGrid, i);
+                        if (lookAhead2(tempGrid, level, end).score > pboard.score)
+                        {
+                            pboard = lookAhead2(tempGrid, level, end);
+                            pboard.column = i;
+                        }
+                    }
+                }
+                return pboard;
+            }
+            else
+            {
+                playBoard pboard = new playBoard();
+                pboard.column = 0;
+                pboard.score = 100000;
+                pboard.playGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+
+                level++;
+                for (int i = 0; i < BOARD_WIDTH; i++)
+                {
+                    if (grid[0, i] == 0)
+                    {
+                        int[,] tempGrid = new int[BOARD_HEIGHT, BOARD_WIDTH];
+                        Array.Copy(lookAheadGrid, tempGrid, 42);
+                        firstPlayerTurn = true;
+                        variableMoves(tempGrid, i);
+                        if (lookAhead2(tempGrid, level, end).score < pboard.score)
+                        {
+                            pboard = lookAhead2(tempGrid, level, end);
+                            pboard.column = i;
+                        }
+                    }
+                }
+                return pboard;
+            }
+        }
+
+        //private Play function(int levels, int finalLevel, int[,] gamegrid)
         //{
-        //    variableMoves(grid, 0);
-        //    variableMoves(grid, 1);
-        //    variableMoves(grid, 2);
-        //    variableMoves(grid, 3);
-        //    variableMoves(grid, 4);
-        //    variableMoves(grid, 5);
+        //    if (levels == finalLevel)
+        //    {
+        //        Play p = new Play();
+        //        p.score = evaluateFor1(gamegrid);
+        //        //if (playerMove == 1)
+        //        //{
+        //        //    p.score = evaluateFor1(gamegrid);
+        //        //}
+        //        //else
+        //        //{
+        //        //    p.score = evaluateFor2(gamegrid);
+        //        //}
+        //        return p;
+        //        //int min = 100000;
+        //        //int[,] helperGrid = grid;
+        //        //for (int i = 0; i < 6; i++)
+        //        //{
+        //        //    variableMoves(grid, i);
+        //        //    //firstPlayerTurn = !firstPlayerTurn;
+        //        //    if (evaluateFor1(grid) < min)
+        //        //    {
+        //        //        min = evaluateFor1(grid);
+        //        //    }
+        //        //    grid = helperGrid;
+        //        //}
+        //        //return min;
+        //    }
+        //    else if (levels % 2 == 0)
+        //    {
+        //        int[,] helperGrid = copyGrid(gamegrid);
+        //        int max = -100000;
+        //        Play x = new Play();
+        //        if(levels != 0)
+        //            firstPlayerTurn = !firstPlayerTurn;
+        //        for (int i = 0; i < 6; i++)
+        //        {
+        //            variableMoves(helperGrid, i);
+        //            //firstPlayerTurn = !firstPlayerTurn;
+        //            x = function(levels + 1, finalLevel, helperGrid);
+        //            if (x.score > max)
+        //            {
+        //                max = x.score;
+        //                x.column = i;
+        //            }
+        //            helperGrid = copyGrid(gamegrid);
+        //        }
+        //        x.score = max;
+        //        return x;
+        //        //    //max of
+        //        //    if (levels == finalLevel)
+        //        //    {
+        //        //        //max of heuristics
+        //        //    }
+        //        //return function(levels + 1,finalLevel);
+        //    }
+        //    else
+        //    {
+        //        int[,] helperGrid = copyGrid(gamegrid);
+        //        int min = 100000;
+        //        Play x = new Play();
+        //        if (levels != 1)
+        //            firstPlayerTurn = !firstPlayerTurn;
+        //        for (int i = 0; i < 6; i++)
+        //        {
+        //            variableMoves(helperGrid, i);
+        //            //firstPlayerTurn = !firstPlayerTurn;
+        //            x = function(levels + 1, finalLevel, helperGrid);
+        //            if (x.score < min)
+        //            {
+        //                min = x.score;
+        //                x.column = i;
+        //            }
+        //            helperGrid = copyGrid(gamegrid);
+        //        }
+        //        x.score = min;
+        //        return x;
+        //        //return min;
+        //        ////min
+        //        //return function(levels + 1,finalLevel);
+        //    }
         //}
 
         private void computerPlay()
@@ -718,14 +911,34 @@ namespace ConnectFour
             else
             {
                 //variableMoves(grid, findBestPlay().column);
-                variableMoves(grid, function(0, 5, grid).column);
+
+                //variableMoves(grid, function(0, 5, grid).column);
+
+                bool turn = firstPlayerTurn;
+                int move = 0;
+                if (turn)
+                {
+                    move = lookAhead1(grid, 0, DEPTH).column;
+                    move1.Text = move.ToString();
+                    move1.Foreground = new SolidColorBrush(firstPlayerColor);
+                }
+                else
+                {
+                    move = lookAhead2(grid, 0, DEPTH).column;
+                    move2.Text = move.ToString();
+                    move2.Foreground = new SolidColorBrush(secondPlayerColor);
+                }
+                firstPlayerTurn = turn;
+                variableMoves(grid, move);
+
             }
 
             firstPlayerTurn = !firstPlayerTurn;
 
             DrawGrid();
         }
-        private void makePlay(int column)
+
+        private async void makePlay(int column)
         {
             if (!gameIsOver(grid))
             {
@@ -755,8 +968,25 @@ namespace ConnectFour
                             break;
                         }
                     }
+                    
                     firstPlayerTurn = !firstPlayerTurn;
                     DrawGrid();
+
+                    if (!gameIsOver(grid))
+                    {
+                        interactionTextBlock.Foreground = new SolidColorBrush(secondPlayerColor);
+                        interactionTextBlock.Text = secondPlayerName + "'s Turn!";
+                        await Task.Delay(TimeSpan.FromSeconds(2));
+                        bool turn = firstPlayerTurn;
+                        int move = lookAhead2(grid, 0, DEPTH).column;
+                        firstPlayerTurn = turn;
+                        variableMoves(grid, move);
+
+                        firstPlayerTurn = true;
+
+                        DrawGrid();
+                    }
+
                     if (firstPlayerTurn)
                     {
                         interactionTextBlock.Foreground = new SolidColorBrush(firstPlayerColor);
@@ -767,7 +997,7 @@ namespace ConnectFour
                         interactionTextBlock.Foreground = new SolidColorBrush(secondPlayerColor);
                         interactionTextBlock.Text = secondPlayerName + "'s Turn!";
                     }
-                    if (playerWon(grid,1))
+                    if (playerWon(grid, 1))
                     {
                         interactionTextBlock.Foreground = new SolidColorBrush(firstPlayerColor);
                         interactionTextBlock.Text = firstPlayerName + " Won!";
@@ -776,9 +1006,9 @@ namespace ConnectFour
 
                         if (topPlayers.Contains(firstPlayerName))
                         {
-                            for(int i = 0; i < 5; i++)
+                            for (int i = 0; i < 5; i++)
                             {
-                                if(topPlayers[i] == firstPlayerName)
+                                if (topPlayers[i] == firstPlayerName)
                                 {
                                     topPlayerScores[i] = firstPlayerScore;
                                 }
@@ -804,7 +1034,7 @@ namespace ConnectFour
                         sortTopPlayers();
                         populateTopPlayers();
                     }
-                    if(playerWon(grid,2))
+                    if (playerWon(grid, 2))
                     {
                         interactionTextBlock.Foreground = new SolidColorBrush(secondPlayerColor);
                         interactionTextBlock.Text = secondPlayerName + " Won!";
@@ -848,6 +1078,129 @@ namespace ConnectFour
                 //    garbage.Text = evaluateFor2(grid).ToString();
             }
         }
+        //private void makePlay(int column)
+        //{
+        //    if (!gameIsOver(grid))
+        //    {
+        //        interactionTextBlock.Text = column.ToString();
+
+        //        if (grid[0, column] != 0)
+        //        {
+        //            interactionTextBlock.Foreground = new SolidColorBrush(Colors.Red);
+        //            interactionTextBlock.Text = "Invalid Move";
+        //        }
+        //        else
+        //        {
+        //            for (int r = BOARD_HEIGHT - 1; r > -1; r--)
+        //            {
+        //                if (grid[r, column] == 0)
+        //                {
+        //                    if (firstPlayerTurn)
+        //                    {
+        //                        grid[r, column] = 1;
+
+        //                    }
+        //                    if (!firstPlayerTurn)
+        //                    {
+        //                        grid[r, column] = 2;
+
+        //                    }
+        //                    break;
+        //                }
+        //            }
+        //            firstPlayerTurn = !firstPlayerTurn;
+        //            DrawGrid();
+        //            if (firstPlayerTurn)
+        //            {
+        //                interactionTextBlock.Foreground = new SolidColorBrush(firstPlayerColor);
+        //                interactionTextBlock.Text = firstPlayerName + "'s Turn!";
+        //            }
+        //            else
+        //            {
+        //                interactionTextBlock.Foreground = new SolidColorBrush(secondPlayerColor);
+        //                interactionTextBlock.Text = secondPlayerName + "'s Turn!";
+        //            }
+        //            if (playerWon(grid,1))
+        //            {
+        //                interactionTextBlock.Foreground = new SolidColorBrush(firstPlayerColor);
+        //                interactionTextBlock.Text = firstPlayerName + " Won!";
+        //                firstPlayerScore++;
+        //                firstPlayerScoreTextBlock.Text = firstPlayerScore.ToString();
+
+        //                if (topPlayers.Contains(firstPlayerName))
+        //                {
+        //                    for(int i = 0; i < 5; i++)
+        //                    {
+        //                        if(topPlayers[i] == firstPlayerName)
+        //                        {
+        //                            topPlayerScores[i] = firstPlayerScore;
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    for (int i = 0; i < 5; i++)
+        //                    {
+        //                        if (firstPlayerScore > topPlayerScores[i])
+        //                        {
+        //                            for (int j = 4; j >= i + 1; j--)
+        //                            {
+        //                                topPlayerScores[j] = topPlayerScores[j - 1];
+        //                                topPlayers[j] = topPlayers[j - 1];
+        //                            }
+        //                            topPlayerScores[i] = firstPlayerScore;
+        //                            topPlayers[i] = firstPlayerName;
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //                sortTopPlayers();
+        //                populateTopPlayers();
+        //            }
+        //            if(playerWon(grid,2))
+        //            {
+        //                interactionTextBlock.Foreground = new SolidColorBrush(secondPlayerColor);
+        //                interactionTextBlock.Text = secondPlayerName + " Won!";
+        //                secondPlayerScore++;
+        //                secondPlayerScoreTextBlock.Text = secondPlayerScore.ToString();
+
+        //                if (topPlayers.Contains(secondPlayerName))
+        //                {
+        //                    for (int i = 0; i < 5; i++)
+        //                    {
+        //                        if (topPlayers[i] == secondPlayerName)
+        //                        {
+        //                            topPlayerScores[i] = secondPlayerScore;
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    for (int i = 0; i < 5; i++)
+        //                    {
+        //                        if (secondPlayerScore > topPlayerScores[i])
+        //                        {
+        //                            for (int j = 4; j >= i + 1; j--)
+        //                            {
+        //                                topPlayerScores[j] = topPlayerScores[j - 1];
+        //                                topPlayers[j] = topPlayers[j - 1];
+        //                            }
+        //                            topPlayerScores[i] = secondPlayerScore;
+        //                            topPlayers[i] = secondPlayerName;
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //                sortTopPlayers();
+        //                populateTopPlayers();
+        //            }
+        //        }
+        //        //if (firstPlayerTurn)
+        //        //    garbage.Text = evaluateFor1(grid).ToString();
+        //        //else
+        //        //    garbage.Text = evaluateFor2(grid).ToString();
+        //    }
+        //}
         #region More GUI
         private void AppBarButton_Click(object sender, RoutedEventArgs e)
         {
@@ -1015,6 +1368,8 @@ namespace ConnectFour
                 result = true;
             if (playerWon(grid, 2))
                 result = true;
+            if (grid[0,0] != 0 && grid[0,1] != 0 && grid[0,2] != 0 && grid[0,3] != 0 && grid[0,4] != 0 && grid[0,5] != 0)
+                result = true;
             
             return result;
         }
@@ -1072,30 +1427,30 @@ namespace ConnectFour
                         if (r <= BOARD_HEIGHT - 3)
                         {
                             if (grid[r, c] == 1 && grid[r + 1, c] == 1 && grid[r + 2, c] == 1)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 2 && grid[r + 1, c] == 2 && grid[r + 2, c] == 2)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3)
                         {
                             if (grid[r, c] == 1 && grid[r, c + 1] == 1 && grid[r, c + 2] == 1)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 2 && grid[r, c + 1] == 2 && grid[r, c + 2] == 2)
-                                result -= 14;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3 && r <= BOARD_HEIGHT - 3)
                         {
                             if (grid[r, c] == 1 && grid[r + 1, c + 1] == 1 && grid[r + 2, c + 2] == 1)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 2 && grid[r + 1, c + 1] == 2 && grid[r + 2, c + 2] == 2)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                         if (c <= BOARD_WIDTH - 3 && r > 1)
                         {
                             if (grid[r, c] == 1 && grid[r - 1, c + 1] == 1 && grid[r - 2, c + 2] == 1)
-                                result += 50;
+                                result += THREE_VALUE;
                             if (grid[r, c] == 2 && grid[r - 1, c + 1] == 2 && grid[r - 2, c + 2] == 2)
-                                result -= 50;
+                                result -= THREE_VALUE;
                         }
                     }
                 }
@@ -1227,9 +1582,10 @@ namespace ConnectFour
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            Play test = function(0, 5, grid);
+            //Play test = function(0, 7, grid);
+            playBoard stuff = lookAhead1(grid, 0, 8);
 
-            int something;
+            int something = 0;
         }
     }
 }
